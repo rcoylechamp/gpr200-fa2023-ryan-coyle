@@ -21,43 +21,43 @@ const char* vertexShaderSource = R"(
 	layout(location = 0) in vec3 vPos;
 	layout(location = 1) in vec4 vColor;
 	out vec4 Color;
+	uniform float _Time;
 	void main(){
 		Color = vColor;
-		gl_Position = vec4(vPos,1.0);
+		vec3 offset = vec3(0,sin(vPos.x + _Time),0)*0.5;
+		gl_Position = vec4(vPos + offset,1.0);
 	}
 )";
-
 const char* fragmentShaderSource = R"(
 	#version 450
 	out vec4 FragColor;
 	in vec4 Color;
+	uniform float _Time;
 	void main(){
-		FragColor = Color;
+		FragColor = Color * abs(sin(_Time));
 	}
 )";
 
-
+//Don't know what to return to make function work.
 /*
 unsigned int createShader(GLenum shaderType, const char* sourceCode) {
-	
-	
 
 	//Supply the shader object with source code
 	glShaderSource(shaderType, 1, &sourceCode, NULL);
 	//Compile the shader object
-	glCompileShader(shaderType); 
+	glCompileShader(shaderType);
 
 	int success;
-	 glGetShaderiv(shaderType, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(shaderType, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		//512 is an arbitrary length, but should be plenty of characters for our error message.
 		char infoLog[512];
 		glGetShaderInfoLog(shaderType, 512, NULL, infoLog);
 		printf("Failed to compile shader: %s", infoLog);
-
+		return 0;
 	}
 
-	return shaderType;
+	return 1;
 }
 */
 
@@ -102,6 +102,8 @@ int main() {
 	//Color attribute
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)(sizeof(float) * 3));
 	glEnableVertexAttribArray(1);
+
+	
 	
 	//unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
 	//unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
@@ -140,6 +142,10 @@ int main() {
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		printf("Failed to link shader program: %s", infoLog);
 	}
+
+	
+
+
 	//The linked program now contains our compiled code, so we can delete these intermediate objects
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
@@ -152,6 +158,12 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shaderProgram);
 		glBindVertexArray(vao);
+		float time = (float)glfwGetTime();
+		//Get the location of the uniform by name
+		int timeLocation = glGetUniformLocation(shaderProgram, "_Time");
+		//Set the value of the variable at the location
+		glUniform1f(timeLocation, time);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
