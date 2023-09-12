@@ -39,27 +39,26 @@ const char* fragmentShaderSource = R"(
 )";
 
 //Don't know what to return to make function work.
-/*
-unsigned int createShader(GLenum shaderType, const char* sourceCode) {
 
+unsigned int createShader(GLenum shaderType, const char* sourceCode) {
+	unsigned int shader = glCreateShader(shaderType);
 	//Supply the shader object with source code
-	glShaderSource(shaderType, 1, &sourceCode, NULL);
+	glShaderSource(shader, 1, &sourceCode, NULL);
 	//Compile the shader object
-	glCompileShader(shaderType);
+	glCompileShader(shader);
 
 	int success;
-	glGetShaderiv(shaderType, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		//512 is an arbitrary length, but should be plenty of characters for our error message.
 		char infoLog[512];
-		glGetShaderInfoLog(shaderType, 512, NULL, infoLog);
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
 		printf("Failed to compile shader: %s", infoLog);
 		return 0;
 	}
 
-	return 1;
+	return shader;
 }
-*/
 
 int main() {
 	printf("Initializing...");
@@ -87,6 +86,7 @@ int main() {
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	//Allocate space for + send vertex data to GPU.
+	//							  sizeof(float) * 7 * numvertices
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	unsigned int vao;
@@ -105,24 +105,10 @@ int main() {
 
 	
 	
-	//unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
-	//unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	unsigned int vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSource);
+	unsigned int fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
 	
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	//Supply the shader object with source code
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	//Compile the shader object
-	glCompileShader(vertexShader);
-
-	//Create a new vertex shader object
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	//Supply the shader object with source code
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	//Compile the shader object
-	glCompileShader(fragmentShader);
-	
-
 
 	unsigned int shaderProgram = glCreateProgram();
 	//Attach each stage
