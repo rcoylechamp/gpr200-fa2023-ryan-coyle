@@ -61,8 +61,8 @@ unsigned int createShaderProgram(const char* vertexShaderSource, const char* fra
 //Shader class
 Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader)
 {
-	std::string vertexShaderSource = loadShaderSourceFromFile(vertexShader.c_str());
-	std::string fragmentShaderSource = loadShaderSourceFromFile(fragmentShader.c_str());
+	std::string vertexShaderSource = loadShaderSourceFromFile(vertexShader);
+	std::string fragmentShaderSource = loadShaderSourceFromFile(fragmentShader);
 	m_id = createShaderProgram(vertexShaderSource.c_str(), fragmentShaderSource.c_str());
 }
 
@@ -83,8 +83,13 @@ void Shader::setFloat(const std::string& name, float v) const
 }
 
 void Shader::setVec2(const std::string& name, float x, float y) const {
-	glUniform2f(m_id, GLint location,x, y);
+	glUniform2f(glGetUniformLocation(m_id, name.c_str()), x,y);
 }
-void Shader::setVec3(const std::string& name, float x, float y, float z) const;
-void Shader::setVec4(const std::string& name, float x, float y, float z, float w) const;
+void Shader::setVec3(const std::string& name, float x, float y, float z) const {
+	glUniform3f(glGetUniformLocation(m_id, name.c_str()), x, y, z);
+}
+
+void Shader::setVec4(const std::string& name, float x, float y, float z, float w) const {
+	glUniform4f(glGetUniformLocation(m_id, name.c_str()), x, y,z,w);
+}
 }
