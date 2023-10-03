@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <math.h>
+#include <cmath>
 
 #include <ew/external/glad.h>
 #include <ew/ewMath/ewMath.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
+#include <imgui_impl_glfw.h> 
 #include <imgui_impl_opengl3.h>
 #include <rc/shader.h>
 
@@ -13,26 +14,30 @@
 //using namespace rc; 
 
 
+struct Vertex {
+	float x, y, z;
+	float u, v;
+};
 
-unsigned int createVAO(float* vertexData, int numVertices, unsigned int* indicesData, int numIndices);
+
+unsigned int createVAO(Vertex* vertexData, int numVertices, unsigned int* indicesData, int numIndices);
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
-float vertices[12] = {
-	//x    y    z
-	-0.5, -0.5, 0.0, //Bottom left
-	 0.5, -0.5, 0.0, //Bottom right
-	 0.5,  0.5, 0.0, //Top right
-	-0.5,  0.5, 0.0,//Top left
+Vertex vertices[4] = {
+	{-1.0, -1.0, 0.0, 1.0, 1.0}, //Bottom left
+	{1.0, -1.0, 0.0, 1.0, 1.0}, //Bottom right
+	{1.0, 1.0, 0.0, 1.0, 0.0}, //top right
+	{-1.0, 1.0, 0.0, 1.0, 0.0} //top left
 };
+
 
 unsigned int indices[6] = {
-2 , 3 , 1, //Triangle 1
-4 , 3 , 1  //Triangle 2
+ 2, 1 , 0, //Triangle 1
+2 , 3 , 0  //Triangle 2
 };
-
 
 
 
@@ -46,7 +51,7 @@ int main() {
 		printf("GLFW failed to init!");
 		return 1;
 	}
-
+	
 
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
 	if (window == NULL) {
@@ -71,18 +76,16 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	std::string vertexShaderSource = rc::loadShaderSourceFromFile("assets/vertexShader.vert");
-	std::string fragmentShaderSource = rc::loadShaderSourceFromFile("assets/fragmentShader.frag");
-
+	
 	rc::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
-	shader.use();
+
 
 	
 	unsigned int vao = createVAO(vertices, 4, indices, 6);
 
 	//glUseProgram(shader1);
 	glBindVertexArray(vao);
-
+	
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -90,17 +93,17 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		
+		
 		//Set uniforms
+		shader.use();
+		
 		//glUniform3f(glGetUniformLocation(shader, "_Color"), triangleColor[0], triangleColor[1], triangleColor[2]);
 		//glUniform1f(glGetUniformLocation(shader,"_Brightness"), triangleBrightness);
-		shader.setFloat("_Brightness", triangleBrightness);
-		shader.setVec3("_Color", triangleColor[0], triangleColor[1], triangleColor[2]);
+		//shader.setFloat("_Brightness", triangleBrightness);
+		//shader.setVec3("_Color", triangleColor[0], triangleColor[1], triangleColor[2]);
 
-		//Wireframe
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
-
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		
+		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 		
 		//Render UI
@@ -109,6 +112,8 @@ int main() {
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui::NewFrame();
 
+			 
+			
 			ImGui::Begin("Settings");
 			ImGui::Checkbox("Show Demo Window", &showImGUIDemoWindow);
 			ImGui::ColorEdit3("Color", triangleColor);
@@ -131,7 +136,7 @@ int main() {
 
 
 
-unsigned int createVAO(float* vertexData, int numVertices, unsigned int* indicesData, int numIndices){
+unsigned int createVAO(Vertex* vertexData, int numVertices, unsigned int* indicesData, int numIndices){
 
 
 	unsigned int vao;
@@ -143,10 +148,9 @@ unsigned int createVAO(float* vertexData, int numVertices, unsigned int* indices
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	//Allocate space for + send vertex data to GPU.
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * numVertices * 3, vertexData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, vertexData, GL_STATIC_DRAW);
 
-	//in createVAO()...
-	glBindVertexArray(vao);
+
 
 	unsigned int ebo;
 	glGenBuffers(1, &ebo);
@@ -154,8 +158,12 @@ unsigned int createVAO(float* vertexData, int numVertices, unsigned int* indices
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * numIndices, indicesData, GL_STATIC_DRAW);
 
 	//Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (const void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, x));
 	glEnableVertexAttribArray(0);
+
+	//UV
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, u)));
+	glEnableVertexAttribArray(1);
 
 	return vao;
 }

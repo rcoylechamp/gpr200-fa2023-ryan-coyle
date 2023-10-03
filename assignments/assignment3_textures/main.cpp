@@ -7,8 +7,9 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
+#include <rc/shader.h>
 #include <ew/shader.h>
+#include <rc/texture.h>
 
 struct Vertex {
 	float x, y, z;
@@ -58,9 +59,18 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
+	ew::Shader backgroundShader("assets/background.vert", "assets/background.frag");
+	ew::Shader characterShader("assets/character.vert", "assets/character.frag");
+
+
+
 	ew::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
 
 	unsigned int quadVAO = createVAO(vertices, 4, indices, 6);
+
+	unsigned int brickTexture = loadTexture("assets/brick.png", GL_REPEAT, GL_LINEAR);
+		unsigned int textureA = loadTexture("assets/bricks.jpg");
+		unsigned int textureB = loadTexture("assets/noise.png");
 
 	glBindVertexArray(quadVAO);
 
@@ -69,13 +79,36 @@ int main() {
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		
+
+		//Place textureA in unit 0
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureA);
+		//Place textureB in unit 1
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textureB);
+
+		//Must be using this shader when setting uniforms
+		shader.use();
+		//Make sampler2D _BrickTexture sample from unit 0
+		shader.setInt("_BrickTexture", 0);
+		//Make sampler2D _MarioTexture sample from unit 1
+		shader.setInt("_NoiseTexture", 1);
+
 		//Set uniforms
 		shader.use();
+
+		
+
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 
 		//Render UI
 		{
+
+		;
+
+
 			ImGui_ImplGlfw_NewFrame();
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui::NewFrame();
