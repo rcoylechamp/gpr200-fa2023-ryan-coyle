@@ -88,6 +88,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textureB);
 
+		
+
 		//Must be using this shader when setting uniforms
 		shader.use();
 		//Make sampler2D _BrickTexture sample from unit 0
@@ -95,10 +97,10 @@ int main() {
 		//Make sampler2D _MarioTexture sample from unit 1
 		shader.setInt("_NoiseTexture", 1);
 
-		//Set uniforms
-		shader.use();
+		
 
 		
+
 
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);

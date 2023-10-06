@@ -11,6 +11,8 @@
 #include <ew/shader.h>
 #include <ew/ewMath/vec3.h>
 #include <ew/procGen.h>
+#include <rc/transformations.h>
+#include <rc/shader.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
@@ -51,11 +53,13 @@ int main() {
 	//Depth testing - required for depth sorting!
 	glEnable(GL_DEPTH_TEST);
 
-	ew::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
+	rc::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
 	
 	//Cube mesh
 	ew::Mesh cubeMesh(ew::createCube(0.5f));
-	
+
+	// create transofrm variable transform = Transform()
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
@@ -65,12 +69,16 @@ int main() {
 		//Set uniforms
 		shader.use();
 
+
+		//shader.setMat4("_Model", transform.getModelMatrix());
 		//TODO: Set model matrix uniform
 
 		cubeMesh.draw();
 
 		//Render UI
 		{
+
+
 			ImGui_ImplGlfw_NewFrame();
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui::NewFrame();
