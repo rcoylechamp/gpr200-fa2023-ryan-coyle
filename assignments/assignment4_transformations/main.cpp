@@ -19,6 +19,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 //Square aspect ratio for now. We will account for this with projection later.
 const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 720;
+const int CUBE_NUM = 4;
 
 int main() {
 	printf("Initializing...");
@@ -54,11 +55,18 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	rc::Shader shader("assets/vertexShader.vert", "assets/fragmentShader.frag");
-	
+
 	//Cube mesh
 	ew::Mesh cubeMesh(ew::createCube(0.5f));
 
+	//ew::Mat4 cubeTransform(cubeMesh);
 	// create transofrm variable transform = Transform()
+	rc::Transform transform[4];
+	transform[0].position = ew::Vec3(-0.5f, 0.5f, 0.0f);
+	transform[1].position = ew::Vec3(0.5f, 0.5f, 0.0f);
+	transform[2].position = ew::Vec3(-0.5f, -0.5f, 0.0f);
+	transform[3].position = ew::Vec3(0.5f, -0.5f, 0.0f);
+
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -69,12 +77,10 @@ int main() {
 		//Set uniforms
 		shader.use();
 
-
-		//shader.setMat4("_Model", transform.getModelMatrix());
-		//TODO: Set model matrix uniform
-
-		cubeMesh.draw();
-
+		for (int i = 0; i < CUBE_NUM; i++) {
+			shader.setMat4("_Model", transform[i].getModelMatrix());
+			cubeMesh.draw();
+		}
 		//Render UI
 		{
 
@@ -84,6 +90,19 @@ int main() {
 			ImGui::NewFrame();
 
 			ImGui::Begin("Transform");
+
+			for (size_t i = 0; i < CUBE_NUM; i++)
+			{
+				ImGui::PushID(i);
+				if (ImGui::CollapsingHeader("Transform")) {
+					ImGui::DragFloat3("Position", &transform[i].position.x, 0.05f);
+					ImGui::DragFloat3("Rotation", &transform[i].rotation.x, 1.0f);
+					ImGui::DragFloat3("Scale", &transform[i].scale.x, 0.05f);
+				}
+				ImGui::PopID();
+			}
+
+
 			ImGui::End();
 
 			ImGui::Render();
