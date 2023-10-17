@@ -11,6 +11,9 @@
 #include <ew/shader.h>
 #include <ew/procGen.h>
 #include <ew/transform.h>
+#include <rc/transformations.h>
+#include <rc/shader.h>
+#include <rc/camera.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
@@ -65,6 +68,16 @@ int main() {
 		cubeTransforms[i].position.x = i % (NUM_CUBES / 2) - 0.5;
 		cubeTransforms[i].position.y = i / (NUM_CUBES / 2) - 0.5;
 	}
+	
+	rc::Camera myCamera;
+	myCamera.position = ew::Vec3(0, 0, 5);
+	myCamera.target = ew::Vec3(0, 0, 0);
+	myCamera.fov = 60.0;
+	myCamera.aspectRatio = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT);
+	myCamera.orthographic = false;
+	myCamera.orthoSize = 6.0;
+	myCamera.nearPlane = 0.1;
+	myCamera.farPlane = 100;
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -74,14 +87,19 @@ int main() {
 
 		//Set uniforms
 		shader.use();
+	
 
 		//TODO: Set model matrix uniform
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
 			//Construct model matrix
 			shader.setMat4("_Model", cubeTransforms[i].getModelMatrix());
+			shader.setMat4("_View", myCamera.ViewMatrix());
+			shader.setMat4("_Projection", myCamera.ProjectionMatrix());
 			cubeMesh.draw();
 		}
+
+		
 
 		//Render UI
 		{
@@ -102,6 +120,21 @@ int main() {
 				ImGui::PopID();
 			}
 			ImGui::Text("Camera");
+
+			ImGui::DragFloat3("Position", &myCamera.position.x, 0.05f);
+			ImGui::DragFloat3("Target", &myCamera.target.x, 0.05f);
+
+			ImGui::Checkbox("Orthographic", &myCamera.orthographic);
+			if (myCamera.orthographic) {
+				ImGui::DragFloat("OrthoSize", &myCamera.orthoSize, 0.5f);
+			}
+			else if (!myCamera.orthographic) {
+				ImGui::DragFloat("FOV", &myCamera.fov, 0.05f);
+			}
+			ImGui::DragFloat("Near Plane", &myCamera.nearPlane, 0.5f);
+			ImGui::DragFloat("Far Plane", &myCamera.farPlane, 0.5f);
+
+
 			ImGui::End();
 			
 			ImGui::Render();

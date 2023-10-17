@@ -58,7 +58,7 @@ namespace rc {
 			0, 0, 0, 1
 		);
 	};
-
+	/* causing errors
 	struct Transform {
 		ew::Vec3 position = ew::Vec3(0.0f, 0.0f, 0.0f);
 		ew::Vec3 rotation = ew::Vec3(0.0f, 0.0f, 0.0f); //Euler angles (degrees)
@@ -67,19 +67,19 @@ namespace rc {
 			return ew::Mat4(Translate(position) * RotateX(rotation.x) * RotateY(rotation.y) * RotateZ(rotation.z) * Scale(scale));
 		}
 	};
-
+	*/
 	inline ew::Mat4 LookAt(ew::Vec3 eye, ew::Vec3 target, ew::Vec3 up) {
-		ew::Vec3 f = ew::Normalize(target - eye);
+		ew::Vec3 f = ew::Normalize(eye - target);
 		ew::Vec3 r = ew::Normalize(ew::Cross(up, f));
 		ew::Vec3 u = ew::Normalize(ew::Cross(f, r));
 
 		return ew::Mat4(
-			r.x, r.y, r.z, -(r*eye),
-			u.x, u.y, u.z, -(u*eye),
-			f.x, f.y, f.z, -(f*eye),
+			r.x, r.y, r.z, -ew::Dot(r, eye),
+			u.x, u.y, u.z, -ew::Dot(u, eye),
+			f.x, f.y, f.z, -ew::Dot(f, eye),
 			0, 0, 0, 1
 		);
-			//use ew::Cross for cross product!
+
 	};
 	//Orthographic projection
 	inline ew::Mat4 Orthographic(float height, float aspect, float near, float far) {
@@ -89,47 +89,32 @@ namespace rc {
 		float l = -r;
 
 		return ew::Mat4(
-			2/r-l, 0, 0, -(r+l)/(r-l),
-			0, 2/t-b, 0, -(t+b)/(t-b),
-			0, 0, -2/(far-near), -(far+near)/(far-near),
+			2 / (r - l), 0, 0, -(r + l) / (r - l),
+			0, 2 / (t - b), 0, -(t + b) / (t - b),
+			0, 0, -2 / (far - near), -(far + near) / (far - near),
 			0, 0, 0, 1
 		);
-	};
+	}
 	//Perspective projection
 	//fov = vertical aspect ratio (radians)
 	inline ew::Mat4 Perspective(float fov, float aspect, float near, float far) {
+
+		
 		return ew::Mat4(
-			1/(tan(fov)*aspect), 0, 0, 0,
-			0, 1/(tan(fov)), 0, 0,
-			0, 0, (near+far)/(near-far), (2*far*near)/(near-far),
+			1 / (tan(fov/2) * aspect), 0, 0, 0,
+			0, 1 / (tan(fov/2)), 0, 0,
+			0, 0, (near + far) / (near - far), (2 * far * near) / (near - far),
 			0, 0, -1, 0
 
 		);
 	};
 
-
-	struct Camera {
-		ew::Vec3 position; //Camera body position
-		ew::Vec3 target; //Position to look at
-		float fov; //Vertical field of view in degrees
-		float aspectRatio; //Screen width / Screen height
-		float nearPlane; //Near plane distance (+Z)
-		float farPlane; //Far plane distance (+Z)
-		bool orthographic; //Perspective or orthographic?
-		float orthoSize; //Height of orthographic frustum
-		ew::Mat4 ViewMatrix() {
-			return LookAt(position,target,(0,1,0)); //World->View
-		};
-		ew::Mat4 ProjectionMatrix() {
-			if (orthographic)
-				return Orthographic(orthoSize, aspectRatio, nearPlane, farPlane);
-			else
-				return Perspective(fov, aspectRatio, nearPlane, farPlane);
-;		} //View->Clip
-	};
-
-
 }
+
+
+
+
+
 
 
 
