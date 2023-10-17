@@ -23,8 +23,15 @@ namespace rc {
                 return Orthographic(orthoSize, aspectRatio, nearPlane, farPlane);
             else
                 return Perspective(ew::Radians(fov), aspectRatio, nearPlane, farPlane);
-            ;
+            
         } 
+    };
+    struct CameraControls {
+        double prevMouseX, prevMouseY;
+        float yaw = 0, pitch = 0;
+        float mouseSensitivity = 0.1f;
+        bool firstMouse = true;
+        float movepeed = 5.0f;
     };
 
 }

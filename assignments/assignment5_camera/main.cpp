@@ -17,6 +17,9 @@
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
+void moveCamera(GLFWwindow* window, rc::Camera* Camera, rc::CameraControls* Controls);
+
+
 //Projection will account for aspect ratio!
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
@@ -68,7 +71,7 @@ int main() {
 		cubeTransforms[i].position.x = i % (NUM_CUBES / 2) - 0.5;
 		cubeTransforms[i].position.y = i / (NUM_CUBES / 2) - 0.5;
 	}
-	
+	rc::CameraControls myCameraControls;
 	rc::Camera myCamera;
 	myCamera.position = ew::Vec3(0, 0, 5);
 	myCamera.target = ew::Vec3(0, 0, 0);
@@ -88,7 +91,7 @@ int main() {
 		//Set uniforms
 		shader.use();
 	
-
+		moveCamera(window, &myCamera, &myCameraControls);
 		//TODO: Set model matrix uniform
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
@@ -151,3 +154,42 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* myControls) {
+	if (!glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		myControls->firstMouse = true;
+		return;
+	}
+	//GLFW_CURSOR_DISABLED hides the cursor, but the position will still be changed as we move our mouse.
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	//Get screen mouse position this frame
+	double mouseX, mouseY;
+	glfwGetCursorPos(window, &mouseX, &mouseY);
+
+
+	//If we just started right clicking, set prevMouse values to current position.
+	//This prevents a bug where the camera moves as soon as we click.
+
+	if (myControls->firstMouse) {
+		myControls->firstMouse = false;
+		myControls->prevMouseX = mouseX;
+		myControls->prevMouseY = mouseY;
+	}
+
+//TODO: Get mouse position delta for this frame
+//TODO: Add to yaw and pitch
+//TODO: Clamp pitch between -89 and 89 degrees
+//radians?
+	//0.1 for mouse sensitivity
+	//ew::Vec3 yaw = ew::DEG2RAD;
+	int mouseSensitivity = 0.1;
+
+
+	//Remember previous mouse position
+	myControls->prevMouseX = mouseX;
+	myControls->prevMouseY = mouseY;
+
+	//ew::Vec3 forward = ;
+
+}
