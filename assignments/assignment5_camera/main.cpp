@@ -17,7 +17,8 @@
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
-void moveCamera(GLFWwindow* window, rc::Camera* Camera, rc::CameraControls* Controls);
+void moveCamera(GLFWwindow* window, rc::Camera* Camera, rc::CameraControls* Controls, float deltaTime);
+void resetCamera(rc::Camera* myCamera, rc::CameraControls* myControls);
 
 
 //Projection will account for aspect ratio!
@@ -27,6 +28,8 @@ const int SCREEN_HEIGHT = 720;
 const int NUM_CUBES = 4;
 ew::Transform cubeTransforms[NUM_CUBES];
 
+
+float prevTime;
 int main() {
 	printf("Initializing...");
 	if (!glfwInit()) {
@@ -91,7 +94,11 @@ int main() {
 		//Set uniforms
 		shader.use();
 	
-		moveCamera(window, &myCamera, &myCameraControls);
+		float time = (float)glfwGetTime();
+		float deltaTime = time - prevTime;
+		prevTime = time;
+
+		moveCamera(window, &myCamera, &myCameraControls, deltaTime);
 		//TODO: Set model matrix uniform
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
@@ -137,6 +144,16 @@ int main() {
 			ImGui::DragFloat("Near Plane", &myCamera.nearPlane, 0.5f);
 			ImGui::DragFloat("Far Plane", &myCamera.farPlane, 0.5f);
 
+			ImGui::Text("Camera Controller");
+
+			ImGui::Text("Yaw: %f", myCameraControls.yaw);
+			ImGui::Text("Pitch: %f", myCameraControls.pitch);
+			ImGui::DragFloat("Move Speed", &myCameraControls.moveSpeed, 0.5f);
+			
+			if (ImGui::Button("Reset")) {
+				resetCamera(&myCamera, &myCameraControls);
+			}
+
 
 			ImGui::End();
 			
@@ -154,7 +171,7 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* myControls) {
+void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* myControls, float deltaTime) {
 	if (!glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		myControls->firstMouse = true;
@@ -177,19 +194,78 @@ void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* my
 		myControls->prevMouseY = mouseY;
 	}
 
-//TODO: Get mouse position delta for this frame
-//TODO: Add to yaw and pitch
-//TODO: Clamp pitch between -89 and 89 degrees
+
+	//TODO: Get mouse position delta for this frame
+	//TODO: Add to yaw and pitch
+	//TODO: Clamp pitch between -89 and 89 degrees
+	double mouseInputX = mouseX - myControls->prevMouseX;
+	double mouseInputY = mouseY -  myControls->prevMouseY;
+
+	myControls->yaw += (mouseInputX)*myControls->mouseSensitivity;
+	myControls->pitch -= (mouseInputY)*myControls->mouseSensitivity;
+	
+	if (myControls->pitch > 89){
+		myControls->pitch = 89;
+	}
+	if (myControls->pitch < -89){
+		myControls->pitch = -89;
+}
+
 //radians?
 	//0.1 for mouse sensitivity
 	//ew::Vec3 yaw = ew::DEG2RAD;
-	int mouseSensitivity = 0.1;
+	
 
 
 	//Remember previous mouse position
 	myControls->prevMouseX = mouseX;
 	myControls->prevMouseY = mouseY;
+	
+	ew::Vec3 forward = ew::Vec3(
+		sin(myControls->yaw * ew::DEG2RAD) * cos(myControls->pitch * ew::DEG2RAD),
+		sin(myControls->pitch * ew::DEG2RAD),
+		-cos(myControls->yaw * ew::DEG2RAD) * cos(myControls->pitch * ew::DEG2RAD)
+		);
 
-	//ew::Vec3 forward = ;
+	ew::Vec3 right = ew::Normalize(ew::Cross(forward, ew::Vec3(0, 1, 0)));
+	ew::Vec3 up = ew::Normalize(ew::Cross(right, forward));
 
+
+	if (glfwGetKey(window, GLFW_KEY_W)) {
+		myCamera->position += forward * myControls->moveSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S)) {
+		myCamera->position -= forward * myControls->moveSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D)) {
+		myCamera->position += right * myControls->moveSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A)) {
+		myCamera->position -= right * myControls->moveSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q))
+	{
+		myCamera->position += up * myControls->moveSpeed * deltaTime;
+	}
+	if (glfwGetKey(window, GLFW_KEY_E))
+	{
+		myCamera->position += -up * myControls->moveSpeed * deltaTime;
+	}
+
+	myCamera->target = myCamera->position + forward;
+
+}
+
+void resetCamera(rc::Camera* myCamera, rc::CameraControls* myControls) {
+
+	myCamera->position = ew::Vec3(0, 0, 5);
+	myCamera->target = ew::Vec3(0, 0, 0);
+	myCamera->fov = 60.0;
+	myCamera->orthographic = false;
+	myCamera->orthoSize = 6.0;
+	myCamera->nearPlane = 0.1;
+	myCamera->farPlane = 100;
+
+	myControls->yaw = 0;
+	myControls->pitch = 0;
 }

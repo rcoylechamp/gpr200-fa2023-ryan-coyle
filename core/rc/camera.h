@@ -16,7 +16,7 @@ namespace rc {
         bool orthographic;
         float orthoSize;
         ew::Mat4 ViewMatrix() {
-            return LookAt(position, target, ew::Vec3(0, 1, 0)); //World->View
+            return rc::LookAt(position, target, ew::Vec3(0, 1, 0)); //World->View
         };
         ew::Mat4 ProjectionMatrix() {
             if (orthographic)
@@ -31,7 +31,7 @@ namespace rc {
         float yaw = 0, pitch = 0;
         float mouseSensitivity = 0.1f;
         bool firstMouse = true;
-        float movepeed = 5.0f;
+        float moveSpeed = 5.0f;
     };
 
 }
