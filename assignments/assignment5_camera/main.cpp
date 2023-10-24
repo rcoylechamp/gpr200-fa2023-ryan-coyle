@@ -193,30 +193,21 @@ void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* my
 		myControls->prevMouseX = mouseX;
 		myControls->prevMouseY = mouseY;
 	}
-
-
-	//TODO: Get mouse position delta for this frame
-	//TODO: Add to yaw and pitch
-	//TODO: Clamp pitch between -89 and 89 degrees
+	
+	//variable to use in yaw/pitch
 	double mouseInputX = mouseX - myControls->prevMouseX;
 	double mouseInputY = mouseY -  myControls->prevMouseY;
 
 	myControls->yaw += (mouseInputX)*myControls->mouseSensitivity;
 	myControls->pitch -= (mouseInputY)*myControls->mouseSensitivity;
 	
+	//Clamp pitch between -89 and 89 degrees
 	if (myControls->pitch > 89){
 		myControls->pitch = 89;
 	}
 	if (myControls->pitch < -89){
 		myControls->pitch = -89;
 }
-
-//radians?
-	//0.1 for mouse sensitivity
-	//ew::Vec3 yaw = ew::DEG2RAD;
-	
-
-
 	//Remember previous mouse position
 	myControls->prevMouseX = mouseX;
 	myControls->prevMouseY = mouseY;
@@ -230,7 +221,7 @@ void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* my
 	ew::Vec3 right = ew::Normalize(ew::Cross(forward, ew::Vec3(0, 1, 0)));
 	ew::Vec3 up = ew::Normalize(ew::Cross(right, forward));
 
-
+	//movement with keys WASDEQ
 	if (glfwGetKey(window, GLFW_KEY_W)) {
 		myCamera->position += forward * myControls->moveSpeed * deltaTime;
 	}
@@ -257,7 +248,7 @@ void moveCamera(GLFWwindow* window, rc::Camera* myCamera, rc::CameraControls* my
 }
 
 void resetCamera(rc::Camera* myCamera, rc::CameraControls* myControls) {
-
+	//RESET all important values 
 	myCamera->position = ew::Vec3(0, 0, 5);
 	myCamera->target = ew::Vec3(0, 0, 0);
 	myCamera->fov = 60.0;
