@@ -14,6 +14,8 @@
 #include <ew/transform.h>
 #include <ew/camera.h>
 #include <ew/cameraController.h>
+#include <rc/procGen.h>
+#include <rc/transformations.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
@@ -87,6 +89,18 @@ int main() {
 
 	resetCamera(camera,cameraController);
 
+
+	ew::MeshData sphereMeshData = rc::createSphere(0.5f, 64);
+
+	//Create mesh renderer
+	ew::Mesh sphereMesh(sphereMeshData);
+
+	//Initialize transform
+	ew::Transform sphereTransform;
+	sphereTransform.position = ew::Vec3(1.0f, 0.0f, 0.0f);
+
+
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		camera.aspectRatio = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
@@ -111,6 +125,9 @@ int main() {
 		shader.setInt("_Mode", appSettings.shadingModeIndex);
 		shader.setVec3("_Color", appSettings.shapeColor);
 		shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+
+		shader.setMat4("Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
 
 		//Euler angels to forward vector
 		ew::Vec3 lightRot = appSettings.lightRotation * ew::DEG2RAD;
