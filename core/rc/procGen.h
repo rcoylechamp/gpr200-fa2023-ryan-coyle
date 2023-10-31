@@ -1,5 +1,6 @@
 #pragma once
-#include "..ew/mesh.h"
+#include "../ew/mesh.h"
+
 namespace rc {
 	ew::MeshData createSphere(float radius, int numSegments);
 	ew::MeshData createCylinder(float height, float radius, int numSegments);
