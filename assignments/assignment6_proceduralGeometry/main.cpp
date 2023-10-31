@@ -89,7 +89,7 @@ int main() {
 
 	resetCamera(camera,cameraController);
 
-
+	
 	ew::MeshData sphereMeshData = rc::createSphere(0.5f, 64);
 
 	//Create mesh renderer
@@ -126,7 +126,7 @@ int main() {
 		shader.setVec3("_Color", appSettings.shapeColor);
 		shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
 
-		shader.setMat4("Model", sphereTransform.getModelMatrix());
+		shader.setMat4("_Model", sphereTransform.getModelMatrix());
 		sphereMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
 
 		//Euler angels to forward vector
