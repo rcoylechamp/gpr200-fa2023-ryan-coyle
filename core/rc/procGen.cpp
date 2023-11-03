@@ -12,7 +12,7 @@ namespace rc {
 			phi = row * phiStep;
 			for (int col = 0; col <= numSegments; col++) {
 				theta = col * thetaStep;
-				vertex.pos = ew::Vec3(radius * sin(phi) * cos(theta), radius * cos(phi), radius * sin(phi) * sin(theta));
+				vertex.pos = ew::Vec3(radius * cos(theta) * sin(phi), radius * cos(phi), radius * sin(theta) * sin(phi));
 				sphereMesh.vertices.push_back(vertex);
 			}
 		}
@@ -26,16 +26,24 @@ namespace rc {
 		float bottomY = -topY;
 		float theta;
 		float thetaStep = 2 * ew::PI / numSegments;
-
+		cylinderMesh.vertices.push_back({ 0,topY,0 });
 		for (int i = 0; i <= numSegments; i++) {
 			theta = i * thetaStep;
 
 			vertex.pos = ew::Vec3(cos(theta) * radius, sin(theta) * radius, topY);
-
-			cylinderMesh.vertices.push_back({ 0,topY,0 });
-			cylinderMesh.vertices.push_back({ 0,bottomY,0 });
 			cylinderMesh.vertices.push_back(vertex);
 		}
+
+		cylinderMesh.vertices.push_back({ 0,bottomY,0 });
+		for (int i = 0; i <= numSegments; i++) {
+			theta = i * thetaStep;
+
+			vertex.pos = ew::Vec3(cos(theta) * radius, sin(theta) * radius, bottomY);
+			cylinderMesh.vertices.push_back(vertex);
+		}
+		
+
+
 		return cylinderMesh;
 	}
 	ew::MeshData createPlane(float size, int subdivisions) {
@@ -47,7 +55,7 @@ namespace rc {
 
 		for (int row = 0; row <= subdivisions; row++) {
 			for (int col = 0; col <= subdivisions; col++) {
-				vertex.pos = width * (col / subdivisions), -height * (row / subdivisions);
+				vertex.pos = ew::Vec3(width * (col / subdivisions), -height * (row / subdivisions));
 				planeMesh.vertices.push_back(vertex);
 			}
 		}

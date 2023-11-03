@@ -90,15 +90,34 @@ int main() {
 	resetCamera(camera,cameraController);
 
 	
-	ew::MeshData sphereMeshData = rc::createSphere(0.5f, 64);
+	ew::MeshData sphereMeshData = rc::createSphere(1.5f, 64);
 
 	//Create mesh renderer
 	ew::Mesh sphereMesh(sphereMeshData);
 
 	//Initialize transform
 	ew::Transform sphereTransform;
-	sphereTransform.position = ew::Vec3(1.0f, 0.0f, 0.0f);
+	sphereTransform.position = ew::Vec3(3.0f, 0.0f, 0.0f);
 
+
+	ew::MeshData cylinderMeshData = rc::createCylinder(1.0f, 0.5f, 64);
+
+	//Create mesh renderer
+	ew::Mesh cylinderMesh(cylinderMeshData);
+
+	//Initialize transform
+	ew::Transform cylinderTransform;
+	cylinderTransform.position = ew::Vec3(-3.0f, 0.0f, 0.0f);
+
+
+	ew::MeshData planeMeshData = rc::createPlane(2.0f, 10);
+
+	//Create mesh renderer
+	ew::Mesh planeMesh(planeMeshData);
+
+	//Initialize transform
+	ew::Transform planeTransform;
+	planeTransform.position = ew::Vec3(0.0f, -2.0f, 0.0f);
 
 
 	while (!glfwWindowShouldClose(window)) {
@@ -126,9 +145,6 @@ int main() {
 		shader.setVec3("_Color", appSettings.shapeColor);
 		shader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
 
-		shader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
-
 		//Euler angels to forward vector
 		ew::Vec3 lightRot = appSettings.lightRotation * ew::DEG2RAD;
 		ew::Vec3 lightF = ew::Vec3(sinf(lightRot.y) * cosf(lightRot.x), sinf(lightRot.x), -cosf(lightRot.y) * cosf(lightRot.x));
@@ -137,6 +153,20 @@ int main() {
 		//Draw cube
 		shader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
+
+
+		shader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
+
+		shader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
+
+		shader.setMat4("_Model", planeTransform.getModelMatrix());
+		planeMesh.draw((ew::DrawMode)appSettings.drawAsPoints);
+
 
 		//Render UI
 		{
