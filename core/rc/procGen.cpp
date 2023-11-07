@@ -25,18 +25,16 @@ namespace rc {
 
 
 		int poleStart = 0;
-		int sideStart = numSegments + 1;
+		int sideStart = columns;
 
 		for (int i = 0; i < numSegments; i++)
 		{
 			sphereMesh.indices.push_back(sideStart + i);
-			sphereMesh.indices.push_back(poleStart + i); //This is the pole vertex
+			sphereMesh.indices.push_back(poleStart + i); 
 			sphereMesh.indices.push_back(sideStart + i + 1);
 		}
 
-		//Sides
 
-		//Need to skip the top & bottom rows, since we already wound those
 		for (int row = 1; row < (numSegments - 1); row++)
 		{
 			for (int col = 0; col < numSegments; col++)
@@ -47,23 +45,22 @@ namespace rc {
 				sphereMesh.indices.push_back(start);
 				sphereMesh.indices.push_back(start + 1);
 				sphereMesh.indices.push_back(start + columns);
-
-				//Bottom Right Triangles
+				sphereMesh.indices.push_back(start + columns);
 				sphereMesh.indices.push_back(start + 1);
 				sphereMesh.indices.push_back(start + columns + 1);
-				sphereMesh.indices.push_back(start + columns);
+			
 			}
 		}
 
 		//Bottom Cap
-		poleStart = ((numSegments + 1) * (columns - 1));
-		sideStart = ((numSegments + 1) * (columns - 2));
+		poleStart = ((columns) * (columns - 1));
+		sideStart = poleStart - columns;
 
 		for (int i = 0; i < numSegments; i++)
 		{
 			sphereMesh.indices.push_back(sideStart + i + 1);
 
-			sphereMesh.indices.push_back(poleStart + i); //This is the pole vertex
+			sphereMesh.indices.push_back(poleStart + i); 
 
 			sphereMesh.indices.push_back(sideStart + i);
 		}
@@ -78,8 +75,8 @@ namespace rc {
 		float theta;
 		float thetaStep = 2 * ew::PI / numSegments;
 		vertex.pos = ew::Vec3(0, topY, 0);
-		vertex.normal = { 0, 1, 0 };
-		vertex.uv = { 0.5, 0.5 };
+		vertex.normal = ew::Vec3(0, 1, 0);
+		vertex.uv = ew::Vec2(0.5);
 		cylinderMesh.vertices.push_back(vertex);
 		for (int i = 0; i <= numSegments; i++) {
 			theta = i * thetaStep;
@@ -95,6 +92,8 @@ namespace rc {
 
 
 		vertex.pos = ew::Vec3(0, bottomY, 0);
+		vertex.normal = ew::Vec3(0, -1, 0);
+		vertex.uv = ew::Vec2(0.5);
 		cylinderMesh.vertices.push_back(vertex);
 
 		
@@ -109,6 +108,9 @@ namespace rc {
 			vertex.uv = { (i / (float)numSegments), 0 };
 		}
 		
+
+
+		//Indices
 		int start = 1, center = 0;
 		for (int i = 0; i < numSegments; i++) {
 			cylinderMesh.indices.push_back(start + i);

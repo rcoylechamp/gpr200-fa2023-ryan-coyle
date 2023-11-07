@@ -117,7 +117,7 @@ int main() {
 
 	//Initialize transform
 	ew::Transform planeTransform;
-	planeTransform.position = ew::Vec3(0.0f, -2.0f, 0.0f);
+	planeTransform.position = ew::Vec3(0.0f, 2.0f, 0.0f);
 
 
 	while (!glfwWindowShouldClose(window)) {
