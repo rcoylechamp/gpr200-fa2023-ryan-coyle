@@ -15,6 +15,28 @@
 #include <ew/camera.h>
 #include <ew/cameraController.h>
 
+struct Light {
+	ew::Vec3 Position = ew::Vec3(0, 0, 0);
+	ew::Vec3 Color = ew::Vec3(1, 1, 1);
+	ew::Vec3 LightColor = ew::Vec3(1.0f, 1.0f, 1.0f);
+	
+} light;
+const int MAX_LIGHT = 4;
+Light lights[MAX_LIGHT];
+int numOfLights = 1;
+bool lightsOrbit = true;
+float orbitRadius = 2.0f;
+
+//main.cpp
+struct Material {
+	float ambientK = 0.5; //Ambient coefficient (0-1)
+	float diffuseK = 0.5; //Diffuse coefficient (0-1)
+	float specular = 0.5; //Specular coefficient (0-1)
+	float shininess = 2; //Shininess
+
+} material;
+
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void resetCamera(ew::Camera& camera, ew::CameraController& cameraController);
 
@@ -61,6 +83,9 @@ int main() {
 	ew::Shader shader("assets/defaultLit.vert", "assets/defaultLit.frag");
 	unsigned int brickTexture = ew::loadTexture("assets/brick_color.jpg",GL_REPEAT,GL_LINEAR);
 
+	//UNLIT SHADER
+	ew::Shader unlitShader("assets/unLit.vert", "assets/unLit.frag");
+
 	//Create cube
 	ew::Mesh cubeMesh(ew::createCube(1.0f));
 	ew::Mesh planeMesh(ew::createPlane(5.0f, 5.0f, 10));
@@ -77,7 +102,9 @@ int main() {
 	cylinderTransform.position = ew::Vec3(1.5f, 0.0f, 0.0f);
 
 	resetCamera(camera,cameraController);
-
+	
+	ew::Mesh lightMesh = ew::Mesh(ew::createSphere(0.5f, 16));
+	ew::Transform lightTrans[MAX_LIGHT];
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
@@ -90,7 +117,7 @@ int main() {
 		cameraController.Move(window, &camera, deltaTime);
 
 		//RENDER
-		glClearColor(bgColor.x, bgColor.y,bgColor.z,1.0f);
+		glClearColor(bgColor.x, bgColor.y, bgColor.z, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.use();
@@ -111,7 +138,38 @@ int main() {
 		shader.setMat4("_Model", cylinderTransform.getModelMatrix());
 		cylinderMesh.draw();
 
-		//TODO: Render point lights
+		for (int i = 0; i < numOfLights; i++) {
+			shader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTrans[i].position);
+			shader.setVec3("_Lights[" + std::to_string(i) + "].color", lights[i].Color);
+		}
+
+		shader.setVec3("_LightColor", light.LightColor);
+		shader.setVec3("_CameraPos", camera.position);
+
+		shader.setFloat("_Ambient", material.ambientK);
+		shader.setFloat("_Diffuse", material.diffuseK);
+		shader.setFloat("_Specular", material.specular);
+		shader.setFloat("_Shininess", material.shininess);
+
+		shader.setInt("_NumLights", numOfLights);
+
+		unlitShader.use();
+		unlitShader.setMat4("_ViewProjection", camera.ProjectionMatrix() * camera.ViewMatrix());
+
+		for (int i = 0; i < numOfLights; i++) {
+			lightTrans[i].scale = 0.5f;
+			if (lightsOrbit) {
+				lightTrans[i].position.x = cos(i * (2 * ew::PI / 4) + time) * orbitRadius;
+				lightTrans[i].position.z = -sin(i * (2 * ew::PI / 4) + time) * orbitRadius;
+			}
+
+		
+
+			unlitShader.setMat4("_Model", lightTrans[i].getModelMatrix());
+			unlitShader.setVec3("_Color", lights[i].Color);
+			lightMesh.draw();
+		}
+
 
 		//Render UI
 		{
@@ -140,6 +198,33 @@ int main() {
 			}
 
 			ImGui::ColorEdit3("BG color", &bgColor.x);
+
+
+			ImGui::DragInt("Num Lights", &numOfLights, 1.0f, 0.0f, MAX_LIGHT);
+
+			ImGui::Checkbox("Orbit Lights", &lightsOrbit);
+			ImGui::DragFloat("Orbit Radius", &orbitRadius, 0.1f, 0.5f);
+
+			for (int i = 0; i < numOfLights; i++) {
+
+				ImGui::PushID(i);
+
+				if (ImGui::CollapsingHeader("Light")) {
+					ImGui::DragFloat3("Position", &lightTrans[i].position.x, 0.1f);
+					ImGui::ColorEdit3("Color", &lights[i].Color.x, 0.1f);
+				}
+				ImGui::PopID();
+			}
+
+			if (ImGui::CollapsingHeader("Material")) {
+				ImGui::ColorEdit3("Light Color", &light.LightColor.x);
+				ImGui::DragFloat("AmbientK", &material.ambientK, 0.05f, 0.0f, 1.0f);
+				ImGui::DragFloat("DiffuseK", &material.diffuseK, 0.05f, 0.0f, 1.0f);
+				ImGui::DragFloat("SpecularK", &material.specular, 0.05f, 0.0f, 1.0f);
+				ImGui::DragFloat("ShininessK", &material.shininess, 0.1f, 2.0f, 100.0f);
+			}	
+
+
 			ImGui::End();
 			
 			ImGui::Render();
